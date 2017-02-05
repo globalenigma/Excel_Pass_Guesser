@@ -24,6 +24,20 @@ Function load_excel{
     $global:xl_file = Get-FileName("XLS (*.xls) or XLSX (*.xlsx)| *.xls*")
 }
 
+#Test if excel can be stripped of password
+Function check_pw_strip{
+    $path = $env:HOMEPATH + "\Downloads\test_excel\"
+    If(test-path $path){write-host -ForegroundColor Red "[X] Directory exists; proceeding anyways!"}
+	Else{New-Item -ItemType -type Directory -Force -Path $path}
+    try{ copy-item $xl_file $path\excelfile.zip }
+	catch [System.Management.Automation.ParameterBindingValidationException] {
+	    write-host -ForegroundColor Red "[X] No file loaded, Please load a file" }
+    Expand-Archive -LiteralPath .\test_excel\excelfile.zip -DestinationPath .\test_excel\extracted\
+
+    #rm .\test_excel
+	#find what to catch >> $Error[0].Exception.GetType().FullName
+}
+
 #Create new Object for Excel Document
 Function create_xl_object{
     $global:xl = New-Object -com Excel.Application
@@ -79,9 +93,10 @@ function write_menu{
 	2. Choose Excel file to guess
 	3. Show configs
 	4. Execute Password Guessing
-	5. Clean up started Excel processes
-	6. Clean up all Excel processes (Caution: stops all Excel Processes)
-	7. Exit the program
+	5. Check if excel password can be stripped
+	6. Clean up started Excel processes
+	7. Clean up all Excel processes (Caution: stops all Excel Processes)
+	8. Exit the program
 	'
 	write-host -ForegroundColor Green $menu_header
 	write-host $menu_selection_text
@@ -97,12 +112,12 @@ function menu{
 			'2' {cls;load_excel}
 			'3' {cls;write_configs}
 			'4' {cls;create_xl_object;brute_force}
-			'5' {cls;cleanup}
-			'6' {Get-Process EXCEL | Stop-Process}
-			'7' { return }
+			'5' {cls;check_pw_strip}
+			'6' {cls;cleanup}
+			'7' {Get-Process EXCEL | Stop-Process}
+			'8' { return }
 		}
-	}
-	until ($input -eq '7')
+	}until ($input -eq '8')
 }
 
 
